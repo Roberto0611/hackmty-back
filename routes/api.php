@@ -15,10 +15,13 @@ Route::post('login', [JWTAuthController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
     Route::get('user', [JWTAuthController::class, 'me']);
     Route::post('logout', [JWTAuthController::class, 'logout']);
-    
-    // rutas 
-        // make a verify token route
-        Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
+
+    // routes for discounts likes
+    Route::post('likeDiscount/{id}', [DiscountsController::class, 'likeDiscount']);
+    Route::post('dislikeDiscount/{id}', [DiscountsController::class, 'dislikeDiscount']);
+
+    // make a verify token route
+    Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });
 
 // rutas discounts

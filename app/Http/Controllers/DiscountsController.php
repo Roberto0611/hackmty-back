@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Discount;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -151,5 +152,93 @@ class DiscountsController extends Controller
         ]);
 
         return response()->json(['message' => 'Discount schedule created successfully'], 201);
+    }
+    
+    public function likeDiscount($id){
+        // Require authenticated user
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $discount = Discount::find($id);
+        if (!$discount) {
+            return response()->json(['message' => 'Discount not found'], 404);
+        }
+
+        $userId = auth()->id();
+        $votableType = Discount::class;
+
+        // Check existing vote for this user and discount
+        $existing = Vote::where('user_id', $userId)
+            ->where('votable_id', $id)
+            ->where('votable_type', $votableType)
+            ->first();
+
+        if ($existing) {
+            if ((int) $existing->vote_value === 1) {
+                // already liked, do not duplicate
+                return response()->json(['message' => 'Already liked'], 200);
+            }
+
+            // switch dislike to like
+            $existing->vote_value = 1;
+            $existing->save();
+
+            return response()->json(['message' => 'Changed vote to like'], 200);
+        }
+
+        // create new like
+        $vote = new Vote();
+        $vote->user_id = $userId;
+        $vote->votable_id = $id;
+        $vote->votable_type = $votableType;
+        $vote->vote_value = 1;
+        $vote->save();
+
+        return response()->json(['message' => 'Like registered successfully'], 201);
+    }
+
+    public function dislikeDiscount($id){
+        // Require authenticated user
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $discount = Discount::find($id);
+        if (!$discount) {
+            return response()->json(['message' => 'Discount not found'], 404);
+        }
+
+        $userId = auth()->id();
+        $votableType = Discount::class;
+
+        // Check existing vote
+        $existing = Vote::where('user_id', $userId)
+            ->where('votable_id', $id)
+            ->where('votable_type', $votableType)
+            ->first();
+
+        if ($existing) {
+            if ((int) $existing->vote_value === -1) {
+                // already disliked
+                return response()->json(['message' => 'Already disliked'], 200);
+            }
+
+            // switch like to dislike
+            $existing->vote_value = -1;
+            $existing->save();
+
+            return response()->json(['message' => 'Changed vote to dislike'], 200);
+        }
+
+        // create new dislike
+        $vote = new Vote();
+        $vote->user_id = $userId;
+        $vote->votable_id = $id;
+        $vote->votable_type = $votableType;
+        $vote->vote_value = -1;
+        $vote->save();
+
+        return response()->json(['message' => 'Dislike registered successfully'], 201);
     }
 }
