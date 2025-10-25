@@ -20,6 +20,8 @@ class MealPlanController extends Controller
      * 
      * POST /api/generateMealPlan
      * Body: { "prompt": "I have $200 for 5 days and want healthy meals" }
+     * 
+     * Returns structured JSON with meal plan including coordinates for each location
      */
     public function generate(Request $request)
     {
@@ -40,7 +42,15 @@ class MealPlanController extends Controller
             $result = $this->geminiService->generateMealPlan($prompt);
             
             if ($result['success']) {
-                return response()->json($result, 200);
+                // Return clean structured JSON with meal plan
+                return response()->json([
+                    'success' => true,
+                    'data' => $result['meal_plan'],
+                    'meta' => [
+                        'iterations' => $result['iterations'] ?? null,
+                        'generated_at' => now()->toIso8601String()
+                    ]
+                ], 200);
             } else {
                 return response()->json($result, 500);
             }

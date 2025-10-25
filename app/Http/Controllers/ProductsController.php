@@ -36,6 +36,8 @@ class ProductsController extends Controller
             ->select(
                 'places_products.*',
                 'places.name as place_name',
+                'places.latitude',
+                'places.longitude',
                 'products.name as product_name'
             )
             ->get();
@@ -67,12 +69,14 @@ class ProductsController extends Controller
             ->select(
                 'places_products.*',
                 'places.name as place_name',
+                'places.latitude',
+                'places.longitude',
                 'products.name as product_name'
             )
             ->where('places_products.place_id', $place_id)
-            ->first();
+            ->get();
 
-        if(!$row){
+        if($row->isEmpty()){
             return response()->json(['message' => 'Record not found'], 404);
         }
 
