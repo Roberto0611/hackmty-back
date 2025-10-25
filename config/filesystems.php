@@ -58,6 +58,8 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
+            // Use 'private' to avoid sending ACL headers (some buckets enforce ownership and reject ACLs)
+            'visibility' => 'private',
         ],
 
     ],

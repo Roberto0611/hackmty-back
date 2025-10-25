@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Discount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class DiscountsController extends Controller
 {
@@ -71,5 +73,64 @@ class DiscountsController extends Controller
         }
 
         return response()->json($rows);
+    }
+
+    public function createDiscount(Request $request){
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image_url' => 'nullable|url',
+            'place_id' => 'required|integer|exists:places,id',
+            'category_id' => 'required|integer|exists:categories,id',
+            // validar el archivo enviado (multipart/form-data)
+            'image' => 'nullable|file|image|max:5120', // 5 MB
+        ]);
+
+        $discounts = new Discount();
+        $discounts->title = $request->title;
+        $discounts->description = $request->description;
+        // si se envía una URL externa la guardamos; si se sube archivo la actualizaremos después
+        $discounts->image_url = $request->image_url;
+        $discounts->place_id = $request->place_id;
+        $discounts->category_id = $request->category_id;
+        $discounts->save();
+
+        $id = $discounts->id;
+
+        $file = $request->file('image');
+        if ($file && $file->isValid()) {
+            try {
+                // crear nombre único y seguro
+                $extension = $file->getClientOriginalExtension() ?: 'jpg';
+                $filename = uniqid('discount_') . '.' . $extension;
+
+                // Guardar usando el disco S3 y establecer visibilidad explícita a 'private'
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $s3disk */
+                $s3disk = Storage::disk('s3');
+                $path = $s3disk->putFileAs('discounts/' . $id, $file, $filename, ['visibility' => 'private']);
+
+                // Comprobar que $path es string no vacío antes de usarlo
+                if (is_string($path) && strlen(trim($path)) > 0) {
+                    // for static analysis: cast disk to FilesystemAdapter which exposes url()
+                    /** @var \Illuminate\Filesystem\FilesystemAdapter $s3disk */
+                    $s3disk = Storage::disk('s3');
+                    $url = $s3disk->url($path);
+                    // actualizar la URL de la imagen en la base de datos
+                    $discounts->image_url = $url;
+                    $discounts->save();
+                } else {
+                    // registrar para depuración y volver a la respuesta sin URL
+                    Log::error("S3 returned empty path when uploading discount image", ['discount_id' => $id, 'original_name' => $file->getClientOriginalName()]);
+                }
+
+            } catch (\Exception $e) {
+                // registrar el error y devolver respuesta adecuada
+                Log::error('Error uploading discount image to S3', ['discount_id' => $id, 'error' => $e->getMessage()]);
+                return response()->json(['message' => 'Discount created but image upload failed', 'error' => $e->getMessage(), 'discount' => $discounts], 201);
+            }
+        }
+
+        return response()->json($discounts, 201);
+
     }
 }
