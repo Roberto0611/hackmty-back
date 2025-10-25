@@ -40,9 +40,26 @@ class JWTAuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json([
-            'user' => auth()->user()
-        ], 200)->withCookie(cookie('jwt', $token, 60 * 24));
+        $minutes = (int) config('jwt.ttl', 60);
+
+        $cookie = \Illuminate\Support\Facades\Cookie::make(
+            'token',
+            $token,
+            $minutes,
+            '/',
+            null,
+            (bool) config('session.secure', false),
+            true,  // HttpOnly
+            false,
+            config('session.same_site', 'lax') // 'lax', 'strict', or 'none'
+        );
+
+        return response()
+            ->json([
+                'user' => auth()->user(),
+                'token' => $token
+            ], 200)
+            ->withCookie($cookie);
     }
 
     public function me()
@@ -54,5 +71,17 @@ class JWTAuthController extends Controller
     {
         JWTAuth::invalidate(JWTAuth::getToken());
         return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    public function verifyToken(Request $request)
+    {
+        $token = $request->input('token');
+
+        try {
+            $payload = JWTAuth::setToken($token)->getPayload();
+            return response()->json(['valid' => true, 'payload' => $payload]);
+        } catch (\Exception $e) {
+            return response()->json(['valid' => false, 'error' => $e->getMessage()], 401);
+        }
     }
 }
