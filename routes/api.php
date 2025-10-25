@@ -7,6 +7,7 @@ use App\Http\Controllers\RoutesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\JWTAuthController;
+use App\Http\Controllers\MealPlanController;
 
 
 Route::post('register', [JWTAuthController::class, 'register']);
@@ -32,13 +33,13 @@ Route::get('getDiscountsByCategory/{category_id}', [DiscountsController::class, 
 Route::get('getDiscountsByDay/{day}', [DiscountsController::class, 'getByDay']);
 Route::post('createDiscount', [DiscountsController::class, 'createDiscount']);
 Route::post('createDiscountSchedule', [DiscountsController::class, 'createDiscountSchedule']);
-// discounts now
+Route::get('getDiscountsNow', [DiscountsController::class, 'getNow']);
     
 // rutas places
 Route::get('getPlaces', [placesController::class, 'index']);
 Route::get('getPlacesById/{id}', [placesController::class, 'getById']);
-// places open now
-// places open day
+Route::get('getPlacesOpenNow', [placesController::class, 'getOpenNow']);
+Route::get('getPlacesByDay/{day}', [placesController::class, 'getByDay']);
     
 // rutas products
 Route::get('getProducts', [ProductsController::class, 'index']);
@@ -52,3 +53,6 @@ Route::get('getPlacesProductsByPlace/{place_id}', [ProductsController::class, 'g
 
 // rutas de routes
 Route::post('calculate-route', [RoutesController::class, 'getRoute']);
+
+// Gemini AI Meal Planner (no auth for testing)
+Route::post('generateMealPlan', [MealPlanController::class, 'generate']);
