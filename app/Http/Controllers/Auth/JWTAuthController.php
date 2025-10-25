@@ -41,8 +41,9 @@ class JWTAuthController extends Controller
         }
 
         return response()->json([
-            'user' => auth()->user()
-        ], 200)->withCookie(cookie('jwt', $token, 60 * 24));
+            'user' => auth()->user(),
+            'token' => $token
+        ], 200);
     }
 
     public function me()
