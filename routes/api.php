@@ -3,6 +3,7 @@
 use App\Http\Controllers\DiscountsController;
 use App\Http\Controllers\placesController;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\RoutesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\JWTAuthController;
@@ -26,3 +27,6 @@ Route::get('getPlaces', [placesController::class, 'index']);
     
 // rutas products
 Route::get('getProducts', [ProductsController::class, 'index']);
+
+// rutas de routes
+Route::post('calculate-route', [RoutesController::class, 'getRoute']);
