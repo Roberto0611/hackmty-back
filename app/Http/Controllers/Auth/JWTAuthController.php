@@ -48,18 +48,14 @@ class JWTAuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $minutes = (int) config('jwt.ttl', 60);
+        $minutes = (int) (getenv('JWT_TTL') ?: 60 * 24 * 7); // <-- Usando getenv con un default
 
-        $cookie = \Illuminate\Support\Facades\Cookie::make(
-            'token',
-            $token,
-            $minutes,
-            '/',
-            null,
-            (bool) config('session.secure', false),
+        $cookie = Cookie::make('token', $token, $minutes, '/',
+            getenv('DOMAIN') ?: null, // Default a 'null'
+            (bool) (getenv('SECURE_COOKIE') ?: false), // Default a 'false'
             true,  // HttpOnly
             false,
-            config('session.same_site', 'lax') // 'lax', 'strict', or 'none'
+            getenv('SAME_SITE_COOKIE') ?: 'lax' // Default a 'lax'
         );
 
         return response()
