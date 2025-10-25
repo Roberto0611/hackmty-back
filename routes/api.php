@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\categoryController;
 use App\Http\Controllers\DiscountsController;
 use App\Http\Controllers\placesController;
 use App\Http\Controllers\ProductsController;
@@ -16,10 +17,13 @@ Route::post('login', [JWTAuthController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
     Route::get('user', [JWTAuthController::class, 'me']);
     Route::post('logout', [JWTAuthController::class, 'logout']);
-    
-    // rutas 
-        // make a verify token route
-        Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
+
+    // routes for discounts likes
+    Route::post('likeDiscount/{id}', [DiscountsController::class, 'likeDiscount']);
+    Route::post('dislikeDiscount/{id}', [DiscountsController::class, 'dislikeDiscount']);
+
+    // make a verify token route
+    Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });
 
 // rutas discounts
@@ -50,6 +54,10 @@ Route::get('getPlacesProductsByPlace/{place_id}', [ProductsController::class, 'g
 
 // rutas de routes
 Route::post('calculate-route', [RoutesController::class, 'getRoute']);
+
+// rutas de categorias
+Route::get('getCategories', [categoryController::class, 'index']);
+
 
 // Gemini AI Meal Planner (no auth for testing)
 Route::post('generateMealPlan', [MealPlanController::class, 'generate']);

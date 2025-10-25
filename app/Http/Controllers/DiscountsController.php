@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Discount;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class DiscountsController extends Controller
 {
@@ -145,7 +147,25 @@ class DiscountsController extends Controller
             'category_id' => 'required|integer|exists:categories,id',
             // validar el archivo enviado (multipart/form-data)
             'image' => 'nullable|file|image|max:5120', // 5 MB
+            // optional schedules array
+            'schedules' => 'nullable|array',
         ]);
+
+        // If schedules provided, validate each item: day_of_week, start_time, end_time
+        $schedules = $request->input('schedules', []);
+        if (!empty($schedules)) {
+            foreach ($schedules as $index => $sched) {
+                $v = Validator::make($sched, [
+                    'day_of_week' => 'required|integer|min:0|max:6',
+                    'start_time' => 'required|date_format:H:i',
+                    'end_time' => 'required|date_format:H:i',
+                ]);
+                if ($v->fails()) {
+                    return response()->json(['message' => 'Invalid schedule at index ' . $index, 'errors' => $v->errors()], 422);
+                }
+                // additional logical check: end_time after start_time or overnight allowed (we accept both)
+            }
+        }
 
         $discounts = new Discount();
         $discounts->title = $request->title;
@@ -154,9 +174,10 @@ class DiscountsController extends Controller
         $discounts->image_url = $request->image_url;
         $discounts->place_id = $request->place_id;
         $discounts->category_id = $request->category_id;
+        $discounts->price = $request->price;
         $discounts->save();
 
-        $id = $discounts->id;
+    $id = $discounts->id;
 
         $file = $request->file('image');
         if ($file && $file->isValid()) {
@@ -191,7 +212,25 @@ class DiscountsController extends Controller
             }
         }
 
-        return response()->json($discounts, 201);
+        // If schedules were provided, insert them into discount_schedules
+        if (!empty($schedules)) {
+            $rows = [];
+            $now = now();
+            foreach ($schedules as $sched) {
+                $rows[] = [
+                    'discount_id' => $id,
+                    'day_of_week' => $sched['day_of_week'],
+                    'start_time' => $sched['start_time'],
+                    'end_time' => $sched['end_time'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            // bulk insert
+            DB::table('discount_schedules')->insert($rows);
+        }
+
+        return response()->json($discounts->fresh(), 201);
     }
 
     public function createDiscountSchedule(Request $request){
@@ -212,5 +251,93 @@ class DiscountsController extends Controller
         ]);
 
         return response()->json(['message' => 'Discount schedule created successfully'], 201);
+    }
+    
+    public function likeDiscount($id){
+        // Require authenticated user
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $discount = Discount::find($id);
+        if (!$discount) {
+            return response()->json(['message' => 'Discount not found'], 404);
+        }
+
+        $userId = auth()->id();
+        $votableType = Discount::class;
+
+        // Check existing vote for this user and discount
+        $existing = Vote::where('user_id', $userId)
+            ->where('votable_id', $id)
+            ->where('votable_type', $votableType)
+            ->first();
+
+        if ($existing) {
+            if ((int) $existing->vote_value === 1) {
+                // already liked, do not duplicate
+                return response()->json(['message' => 'Already liked'], 200);
+            }
+
+            // switch dislike to like
+            $existing->vote_value = 1;
+            $existing->save();
+
+            return response()->json(['message' => 'Changed vote to like'], 200);
+        }
+
+        // create new like
+        $vote = new Vote();
+        $vote->user_id = $userId;
+        $vote->votable_id = $id;
+        $vote->votable_type = $votableType;
+        $vote->vote_value = 1;
+        $vote->save();
+
+        return response()->json(['message' => 'Like registered successfully'], 201);
+    }
+
+    public function dislikeDiscount($id){
+        // Require authenticated user
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $discount = Discount::find($id);
+        if (!$discount) {
+            return response()->json(['message' => 'Discount not found'], 404);
+        }
+
+        $userId = auth()->id();
+        $votableType = Discount::class;
+
+        // Check existing vote
+        $existing = Vote::where('user_id', $userId)
+            ->where('votable_id', $id)
+            ->where('votable_type', $votableType)
+            ->first();
+
+        if ($existing) {
+            if ((int) $existing->vote_value === -1) {
+                // already disliked
+                return response()->json(['message' => 'Already disliked'], 200);
+            }
+
+            // switch like to dislike
+            $existing->vote_value = -1;
+            $existing->save();
+
+            return response()->json(['message' => 'Changed vote to dislike'], 200);
+        }
+
+        // create new dislike
+        $vote = new Vote();
+        $vote->user_id = $userId;
+        $vote->votable_id = $id;
+        $vote->votable_type = $votableType;
+        $vote->vote_value = -1;
+        $vote->save();
+
+        return response()->json(['message' => 'Dislike registered successfully'], 201);
     }
 }
