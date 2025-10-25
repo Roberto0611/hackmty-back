@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'app_base_url' => env('GEMINI_APP_BASE_URL', 'http://127.0.0.1:8000/api'),
+    ],
+
 ];
