@@ -27,13 +27,13 @@ Route::get('getDiscountsById/{id}', [DiscountsController::class, 'getById']);
 Route::get('getDiscountsByPlace/{place_id}', [DiscountsController::class, 'getByPlace']);
 Route::get('getDiscountsByCategory/{category_id}', [DiscountsController::class, 'getByCategory']);
 Route::get('getDiscountsByDay/{day}', [DiscountsController::class, 'getByDay']);
-// discounts now
+Route::get('getDiscountsNow', [DiscountsController::class, 'getNow']);
     
 // rutas places
 Route::get('getPlaces', [placesController::class, 'index']);
 Route::get('getPlacesById/{id}', [placesController::class, 'getById']);
-// places open now
-// places open day
+Route::get('getPlacesOpenNow', [placesController::class, 'getOpenNow']);
+Route::get('getPlacesByDay/{day}', [placesController::class, 'getByDay']);
     
 // rutas products
 Route::get('getProducts', [ProductsController::class, 'index']);
