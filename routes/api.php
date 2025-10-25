@@ -23,7 +23,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('getProducts', [ProductsController::class, 'index']);
     
     // rutas 
-        // make a verify token route
-        Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
+    Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });
 
