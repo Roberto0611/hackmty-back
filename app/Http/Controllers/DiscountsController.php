@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class DiscountsController extends Controller
 {
@@ -146,7 +147,25 @@ class DiscountsController extends Controller
             'category_id' => 'required|integer|exists:categories,id',
             // validar el archivo enviado (multipart/form-data)
             'image' => 'nullable|file|image|max:5120', // 5 MB
+            // optional schedules array
+            'schedules' => 'nullable|array',
         ]);
+
+        // If schedules provided, validate each item: day_of_week, start_time, end_time
+        $schedules = $request->input('schedules', []);
+        if (!empty($schedules)) {
+            foreach ($schedules as $index => $sched) {
+                $v = Validator::make($sched, [
+                    'day_of_week' => 'required|integer|min:0|max:6',
+                    'start_time' => 'required|date_format:H:i',
+                    'end_time' => 'required|date_format:H:i',
+                ]);
+                if ($v->fails()) {
+                    return response()->json(['message' => 'Invalid schedule at index ' . $index, 'errors' => $v->errors()], 422);
+                }
+                // additional logical check: end_time after start_time or overnight allowed (we accept both)
+            }
+        }
 
         $discounts = new Discount();
         $discounts->title = $request->title;
@@ -157,7 +176,7 @@ class DiscountsController extends Controller
         $discounts->category_id = $request->category_id;
         $discounts->save();
 
-        $id = $discounts->id;
+    $id = $discounts->id;
 
         $file = $request->file('image');
         if ($file && $file->isValid()) {
@@ -192,7 +211,25 @@ class DiscountsController extends Controller
             }
         }
 
-        return response()->json($discounts, 201);
+        // If schedules were provided, insert them into discount_schedules
+        if (!empty($schedules)) {
+            $rows = [];
+            $now = now();
+            foreach ($schedules as $sched) {
+                $rows[] = [
+                    'discount_id' => $id,
+                    'day_of_week' => $sched['day_of_week'],
+                    'start_time' => $sched['start_time'],
+                    'end_time' => $sched['end_time'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            // bulk insert
+            DB::table('discount_schedules')->insert($rows);
+        }
+
+        return response()->json($discounts->fresh(), 201);
     }
 
     public function createDiscountSchedule(Request $request){
