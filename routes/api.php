@@ -11,4 +11,6 @@ Route::post('login', [JWTAuthController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
     Route::get('user', [JWTAuthController::class, 'me']);
     Route::post('logout', [JWTAuthController::class, 'logout']);
+    // make a verify token route
+    Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });

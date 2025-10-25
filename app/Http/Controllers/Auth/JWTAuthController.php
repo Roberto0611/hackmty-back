@@ -72,4 +72,16 @@ class JWTAuthController extends Controller
         JWTAuth::invalidate(JWTAuth::getToken());
         return response()->json(['message' => 'Successfully logged out']);
     }
+
+    public function verifyToken(Request $request)
+    {
+        $token = $request->input('token');
+
+        try {
+            $payload = JWTAuth::setToken($token)->getPayload();
+            return response()->json(['valid' => true, 'payload' => $payload]);
+        } catch (\Exception $e) {
+            return response()->json(['valid' => false, 'error' => $e->getMessage()], 401);
+        }
+    }
 }
