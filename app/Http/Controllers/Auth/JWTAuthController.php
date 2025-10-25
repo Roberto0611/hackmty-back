@@ -40,10 +40,26 @@ class JWTAuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json([
-            'user' => auth()->user(),
-            'token' => $token
-        ], 200);
+        $minutes = (int) config('jwt.ttl', 60);
+
+        $cookie = \Illuminate\Support\Facades\Cookie::make(
+            'token',
+            $token,
+            $minutes,
+            '/',
+            null,
+            (bool) config('session.secure', false),
+            true,  // HttpOnly
+            false,
+            config('session.same_site', 'lax') // 'lax', 'strict', or 'none'
+        );
+
+        return response()
+            ->json([
+                'user' => auth()->user(),
+                'token' => $token
+            ], 200)
+            ->withCookie($cookie);
     }
 
     public function me()
