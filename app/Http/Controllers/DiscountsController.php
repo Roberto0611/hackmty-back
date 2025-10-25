@@ -131,6 +131,25 @@ class DiscountsController extends Controller
         }
 
         return response()->json($discounts, 201);
+    }
 
+    public function createDiscountSchedule(Request $request){
+        $validated = $request->validate([
+            'discount_id' => 'required|integer|exists:discounts,id',
+            'day_of_week' => 'required|integer|min:0|max:6',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+        ]);
+
+        $schedule = DB::table('discount_schedules')->insert([
+            'discount_id' => $request->discount_id,
+            'day_of_week' => $request->day_of_week,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Discount schedule created successfully'], 201);
     }
 }

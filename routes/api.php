@@ -28,6 +28,7 @@ Route::get('getDiscountsByPlace/{place_id}', [DiscountsController::class, 'getBy
 Route::get('getDiscountsByCategory/{category_id}', [DiscountsController::class, 'getByCategory']);
 Route::get('getDiscountsByDay/{day}', [DiscountsController::class, 'getByDay']);
 Route::post('createDiscount', [DiscountsController::class, 'createDiscount']);
+Route::post('createDiscountSchedule', [DiscountsController::class, 'createDiscountSchedule']);
 // discounts now
     
 // rutas places
