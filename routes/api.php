@@ -15,17 +15,35 @@ Route::post('login', [JWTAuthController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
     Route::get('user', [JWTAuthController::class, 'me']);
     Route::post('logout', [JWTAuthController::class, 'logout']);
+    
     // rutas 
-    Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
+        // make a verify token route
+        Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });
 
+// rutas discounts
 Route::get('getDiscounts', [DiscountsController::class, 'index']);
+Route::get('getDiscountsById/{id}', [DiscountsController::class, 'getById']);
+Route::get('getDiscountsByPlace/{place_id}', [DiscountsController::class, 'getByPlace']);
+Route::get('getDiscountsByCategory/{category_id}', [DiscountsController::class, 'getByCategory']);
+Route::get('getDiscountsByDay/{day}', [DiscountsController::class, 'getByDay']);
+// discounts now
     
 // rutas places
 Route::get('getPlaces', [placesController::class, 'index']);
+Route::get('getPlacesById/{id}', [placesController::class, 'getById']);
+// places open now
+// places open day
     
 // rutas products
 Route::get('getProducts', [ProductsController::class, 'index']);
+Route::get('getProductsById/{id}', [ProductsController::class, 'getById']);
+Route::get('getProductsByCategory/{category_id}', [ProductsController::class, 'getByCategory']);
+
+// rutas places products
+Route::get('getPlacesProducts', [ProductsController::class, 'getPlacesProducts']);
+Route::get('getPlacesProductsById/{id}', [ProductsController::class, 'getPlacesProductsById']);
+Route::get('getPlacesProductsByPlace/{place_id}', [ProductsController::class, 'getPlacesProductsByPlace']);
 
 // rutas de routes
 Route::post('calculate-route', [RoutesController::class, 'getRoute']);
