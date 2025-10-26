@@ -68,6 +68,8 @@ Route::post('calculate-route', [RoutesController::class, 'getRoute']);
 // rutas de categorias
 Route::get('getCategories', [categoryController::class, 'index']);
 
+// rutas de ranking
+Route::get('getRanking', [JWTAuthController::class, 'getRanking']);
 
 // Gemini AI Meal Planner (no auth for testing)
 Route::post('generateMealPlan', [MealPlanController::class, 'generate']);

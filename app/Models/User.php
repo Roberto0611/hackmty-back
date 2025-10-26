@@ -45,6 +45,22 @@ class User extends Authenticatable implements JWTSubject
     'password' => 'hashed',
 ];
 
+    public function addXp(int $points): void
+    {
+        $this->xp += $points;
+
+        // Calcular nivel nuevo (cada 10 XP = 1 nivel)
+        $newLevel = floor($this->xp / 10) + 1;
+
+        // Si subió de nivel, lo actualizamos
+        if ($newLevel > $this->level) {
+            $this->level = $newLevel;
+        }
+
+        $this->save();
+    }
+
+
     public function getJWTIdentifier()
     {
         return $this->getKey();

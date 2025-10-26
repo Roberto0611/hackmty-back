@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Discount;
+use App\Models\User;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -230,6 +231,9 @@ class DiscountsController extends Controller
 
         DB::table('discount_schedules')->insert($rows);
 
+        $userId = auth()->id();
+        $user = User::find($userId);
+        $user->addXp(10);
         return response()->json($discounts->fresh(), 201);
     }
 
@@ -283,6 +287,8 @@ class DiscountsController extends Controller
             $existing->vote_value = 1;
             $existing->save();
 
+            $user = User::find($userId);
+            $user->addXp(1);
             return response()->json(['message' => 'Changed vote to like'], 200);
         }
 
@@ -293,6 +299,9 @@ class DiscountsController extends Controller
         $vote->votable_type = $votableType;
         $vote->vote_value = 1;
         $vote->save();
+
+        $user = User::find($userId);
+        $user->addXp(1);
 
         return response()->json(['message' => 'Like registered successfully'], 201);
     }
@@ -326,6 +335,8 @@ class DiscountsController extends Controller
             // switch like to dislike
             $existing->vote_value = -1;
             $existing->save();
+            $user = User::find($userId);
+            $user->addXp(1);
 
             return response()->json(['message' => 'Changed vote to dislike'], 200);
         }
@@ -337,6 +348,9 @@ class DiscountsController extends Controller
         $vote->votable_type = $votableType;
         $vote->vote_value = -1;
         $vote->save();
+
+        $user = User::find($userId);
+        $user->addXp(1);
 
         return response()->json(['message' => 'Dislike registered successfully'], 201);
     }

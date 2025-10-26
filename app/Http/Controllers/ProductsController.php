@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PlacesProduct;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -37,6 +38,10 @@ class ProductsController extends Controller
         $pivot->product_id = $Product->id;
         $pivot->price = $validated['price'];
         $pivot->save();
+
+        $userId = auth()->id();
+        $user = User::find($userId);
+        $user->addXp(8);
 
         // Return a JSON response with the created product and a 201 status code
         return response()->json($pivot, 201);
