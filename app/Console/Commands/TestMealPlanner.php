@@ -47,21 +47,64 @@ class TestMealPlanner extends Command
                 }
                 
                 $this->newLine();
-                $this->line('=== MEAL PLAN ===');
+                $this->line('=== STRUCTURED MEAL PLAN ===');
                 $this->newLine();
                 
-                if (isset($result['meal_plan']['formatted_plan'])) {
-                    $this->line($result['meal_plan']['formatted_plan']);
-                } else {
-                    $this->line(json_encode($result['meal_plan'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                $mealPlan = $result['meal_plan'];
+                
+                // Check if we have structured data
+                if (isset($mealPlan['formatted_plan'])) {
+                    // Text format fallback
+                    $this->line($mealPlan['formatted_plan']);
+                    if (isset($mealPlan['note'])) {
+                        $this->newLine();
+                        $this->warn($mealPlan['note']);
+                    }
+                    return Command::SUCCESS;
                 }
                 
-                if (isset($result['raw_response'])) {
+                // Validate required fields
+                if (!isset($mealPlan['total_budget']) || !isset($mealPlan['daily_plans'])) {
+                    $this->error('Invalid meal plan structure');
                     $this->newLine();
                     $this->line('=== RAW RESPONSE ===');
-                    $this->newLine();
-                    $this->line($result['raw_response']);
+                    $this->line(json_encode($mealPlan, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                    return Command::FAILURE;
                 }
+                
+                // Display summary
+                $this->line("Budget: {$mealPlan['total_budget']} pesos");
+                $this->line("Days: {$mealPlan['days']}");
+                $this->line("Health Level: {$mealPlan['health_level']}/5");
+                $this->line("Total Cost: {$mealPlan['total_cost']} pesos");
+                $this->line("Remaining: {$mealPlan['remaining_budget']} pesos");
+                $this->newLine();
+                
+                // Display daily plans
+                foreach ($mealPlan['daily_plans'] as $day) {
+                    $this->info("DAY {$day['day']} - {$day['daily_total']} pesos");
+                    
+                    foreach ($day['meals'] as $meal) {
+                        $this->line("  {$meal['meal_type']}: {$meal['place_name']}");
+                        $this->line("    📍 Location: {$meal['latitude']}, {$meal['longitude']}");
+                        
+                        foreach ($meal['products'] as $product) {
+                            $this->line("    - {$product['name']} x{$product['quantity']} = {$product['price']} pesos");
+                        }
+                        
+                        if (!empty($meal['discount_applied'])) {
+                            $this->line("    💰 Discount: {$meal['discount_applied']}");
+                        }
+                        
+                        $this->line("    Total: {$meal['total_cost']} pesos");
+                        $this->newLine();
+                    }
+                }
+                
+                $this->newLine();
+                $this->line('=== RAW JSON (for frontend) ===');
+                $this->newLine();
+                $this->line(json_encode($result['meal_plan'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
                 
                 return Command::SUCCESS;
             } else {

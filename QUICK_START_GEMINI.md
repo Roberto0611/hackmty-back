@@ -76,24 +76,30 @@ curl -X POST http://127.0.0.1:8000/api/generateMealPlan -H "Content-Type: applic
 2. Extracts: budget, days, health level (1-5)
 3. Calls your endpoints to get:
    - Available products
-   - Places and prices
+   - Places and prices (with coordinates)
    - Current discounts
 4. Creates optimized meal plan
-5. Returns structured JSON
+5. Returns **structured JSON** with:
+   - Daily meal breakdown
+   - Location coordinates for each meal
+   - Product details and pricing
+   - Discounts applied
 
 ## 🎯 Next Steps
 
 Once it works:
-- Try different prompts
-- Check the raw response to see Gemini's reasoning
-- Modify health level descriptions in the service
-- Add more function definitions for categories, etc.
+- Check `MEAL_PLAN_API.md` for complete JSON response format
+- Use coordinates to draw routes on maps (Google Maps, Mapbox, etc.)
+- Display meal plan in cards/tables on frontend
+- Try different prompts and health levels
+- Integrate with your navigation/mapping system
 
 ## 💡 Tips
 
 - Be specific: "300 pesos for 3 days, health level 4"
 - Include preferences: "vegetarian", "Mexican food", "no dairy"
 - The AI understands natural language - just describe what you want!
+- **NEW**: Response includes lat/lng for each location - perfect for route mapping!
 
 ---
 

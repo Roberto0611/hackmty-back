@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\categoryController;
 use App\Http\Controllers\DiscountsController;
 use App\Http\Controllers\placesController;
 use App\Http\Controllers\ProductsController;
@@ -53,6 +54,10 @@ Route::get('getPlacesProductsByPlace/{place_id}', [ProductsController::class, 'g
 
 // rutas de routes
 Route::post('calculate-route', [RoutesController::class, 'getRoute']);
+
+// rutas de categorias
+Route::get('getCategories', [categoryController::class, 'index']);
+
 
 // Gemini AI Meal Planner (no auth for testing)
 Route::post('generateMealPlan', [MealPlanController::class, 'generate']);

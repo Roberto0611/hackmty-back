@@ -28,25 +28,69 @@ class GeminiMealPlannerService
                 'role' => 'user',
                 'parts' => [
                     [
-                        'text' => "You are a helpful meal planning assistant. Based on the user's request, create a detailed meal plan. 
+                        'text' => "You are a helpful meal planning assistant for students at Tec de Monterrey. Based on the user's request, create a detailed meal plan.
                         
 User request: {$userPrompt}
 
 Instructions:
-1. First, extract the budget, number of days, and health level (1-5 scale) from the user's prompt
-2. Use the available functions to get products, places, and pricing information
-3. Create a meal plan that fits within the budget
-4. Include breakfast, lunch, and dinner for each day
-5. Return a structured meal plan with total costs
+1. First, call extract_meal_plan_parameters to extract budget, days, and health level from the prompt
+2. Call get_places_products to get all available products with prices and coordinates
+3. Optionally call get_discounts_by_day to check for discounts
+4. Create a meal plan (breakfast, lunch, dinner for each day) that fits the budget
+5. Consider health level: 1=junk food, 3=balanced, 5=very healthy
+6. Once you have all the data needed, STOP calling functions and return your final answer
 
-Please start by extracting the plan parameters."
+CRITICAL: Your FINAL response must be a JSON code block with this EXACT structure:
+
+```json
+{
+  \"total_budget\": <number>,
+  \"days\": <number of days>,
+  \"health_level\": <1-5>,
+  \"daily_plans\": [
+    {
+      \"day\": 1,
+      \"meals\": [
+        {
+          \"meal_type\": \"breakfast\" or \"lunch\" or \"dinner\",
+          \"place_id\": <place_id number>,
+          \"place_name\": \"<exact place name>\",
+          \"latitude\": <latitude from get_places_products>,
+          \"longitude\": <longitude from get_places_products>,
+          \"products\": [
+            {
+              \"product_id\": <id>,
+              \"name\": \"<product name>\",
+              \"price\": <price>,
+              \"quantity\": <quantity>
+            }
+          ],
+          \"total_cost\": <sum of products>,
+          \"discount_applied\": \"<discount description or empty string>\"
+        }
+      ],
+      \"daily_total\": <sum of all meals>
+    }
+  ],
+  \"total_cost\": <total for all days>,
+  \"remaining_budget\": <budget minus total_cost>
+}
+```
+
+IMPORTANT: 
+- Use latitude/longitude from the get_places_products response
+- Do NOT make up coordinates
+- Return ONLY the JSON, wrapped in ```json ... ```
+- Do NOT add any text before or after the JSON block
+
+Start now by calling extract_meal_plan_parameters."
                     ]
                 ]
             ]
         ];
 
         $tools = $this->getFunctionDefinitions();
-        $maxIterations = 10; // Prevent infinite loops
+        $maxIterations = 15; // Increased for complex requests (5+ days)
         $iteration = 0;
 
         while ($iteration < $maxIterations) {
@@ -76,6 +120,29 @@ Please start by extracting the plan parameters."
 
             // Check if we have function calls to execute
             $parts = $content['parts'] ?? [];
+            
+            // Check for empty parts or blocked content
+            if (empty($parts)) {
+                $finishReason = $candidate['finishReason'] ?? 'UNKNOWN';
+                
+                // Check if we hit max iterations or other stop conditions
+                if ($iteration >= $maxIterations - 1) {
+                    return [
+                        'success' => false,
+                        'error' => 'Max iterations reached without response',
+                        'finish_reason' => $finishReason,
+                        'iterations' => $iteration
+                    ];
+                }
+                
+                // For other cases, log and continue to next iteration
+                Log::warning('Empty parts in response, continuing', [
+                    'finish_reason' => $finishReason,
+                    'iteration' => $iteration
+                ]);
+                continue;
+            }
+            
             $functionCalls = array_filter($parts, fn($part) => isset($part['functionCall']));
 
             if (empty($functionCalls)) {
@@ -92,15 +159,23 @@ Please start by extracting the plan parameters."
                     ];
                 }
                 
+                // No text and no function calls - might be blocked or finished
+                $finishReason = $candidate['finishReason'] ?? 'UNKNOWN';
+                Log::warning('No text in final response', [
+                    'finish_reason' => $finishReason,
+                    'iteration' => $iteration,
+                    'parts' => $parts
+                ]);
+                
                 return [
                     'success' => false,
                     'error' => 'No text response in final answer',
+                    'finish_reason' => $finishReason,
                     'debug' => $content
                 ];
             }
 
             // Execute function calls and prepare responses
-            // DON'T add the model's response - just send function results
             $functionResponseParts = [];
             foreach ($functionCalls as $part) {
                 $functionCall = $part['functionCall'];
@@ -112,8 +187,8 @@ Please start by extracting the plan parameters."
                 $result = $this->executeFunction($functionName, (array)$functionArgs);
                 
                 // Gemini API requires response to be an object/struct, not an array
-                // If the result is a numeric array, wrap it in an object
-                if (is_array($result) && array_keys($result) === range(0, count($result) - 1)) {
+                // If the result is a numeric array (including empty arrays), wrap it in an object
+                if (is_array($result) && (empty($result) || array_keys($result) === range(0, count($result) - 1))) {
                     $result = ['data' => $result];
                 }
                 
@@ -276,7 +351,7 @@ Please start by extracting the plan parameters."
             ],
             [
                 'name' => 'get_places_products',
-                'description' => 'Get all products available at places with their prices',
+                'description' => 'Get all products available at places with their prices. Includes place coordinates (latitude, longitude).',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => (object)[]
@@ -284,7 +359,7 @@ Please start by extracting the plan parameters."
             ],
             [
                 'name' => 'get_places_products_by_place',
-                'description' => 'Get products and prices for a specific place',
+                'description' => 'Get products and prices for a specific place. Includes place coordinates (latitude, longitude).',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [

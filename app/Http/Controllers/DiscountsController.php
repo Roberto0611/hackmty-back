@@ -173,6 +173,7 @@ class DiscountsController extends Controller
         $discounts->image_url = $request->image_url;
         $discounts->place_id = $request->place_id;
         $discounts->category_id = $request->category_id;
+        $discounts->price = $request->price;
         $discounts->save();
 
     $id = $discounts->id;
