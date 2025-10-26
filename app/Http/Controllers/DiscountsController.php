@@ -142,7 +142,6 @@ class DiscountsController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image_url' => 'nullable|url',
             'place_id' => 'required|integer|exists:places,id',
             'category_id' => 'required|integer|exists:categories,id',
             // validar el archivo enviado (multipart/form-data)
