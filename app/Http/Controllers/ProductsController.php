@@ -7,6 +7,8 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProductsController extends Controller
 {
@@ -31,6 +33,29 @@ class ProductsController extends Controller
         $Product->category_id = $validated['category_id'];
         $Product->user_id = auth()->id();
         $Product->save();
+
+        // handle optional image upload to S3 under products/{id}/
+        $file = $request->file('image');
+        if ($file && $file->isValid()) {
+            try {
+                $extension = $file->getClientOriginalExtension() ?: 'jpg';
+                $filename = uniqid('product_') . '.' . $extension;
+
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $s3disk */
+                $s3disk = Storage::disk('s3');
+                $path = $s3disk->putFileAs('products/' . $Product->id, $file, $filename, ['visibility' => 'private']);
+
+                if (is_string($path) && strlen(trim($path)) > 0) {
+                    $url = $s3disk->url($path);
+                    $Product->image_url = $url;
+                    $Product->save();
+                } else {
+                    Log::error('S3 returned empty path when uploading product image', ['product_id' => $Product->id, 'original_name' => $file->getClientOriginalName()]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error uploading product image to S3', ['product_id' => $Product->id, 'error' => $e->getMessage()]);
+            }
+        }
 
         // insertar en pivote
         $pivot = new PlacesProduct();
