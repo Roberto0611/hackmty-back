@@ -25,6 +25,9 @@ class MealPlanController extends Controller
      */
     public function generate(Request $request)
     {
+        // Increase execution time limit for Gemini API calls (can take 30-60 seconds)
+        set_time_limit(120); // 2 minutes
+        
         $validator = Validator::make($request->all(), [
             'prompt' => 'required|string|min:10|max:1000'
         ]);
