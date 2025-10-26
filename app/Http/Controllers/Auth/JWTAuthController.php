@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class JWTAuthController extends Controller
 {
@@ -19,6 +21,8 @@ class JWTAuthController extends Controller
                 'name' => 'required|string',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:8|confirmed',
+                // optional avatar/image upload
+                'image' => 'nullable|file|image|max:5120', // 5 MB
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -35,8 +39,32 @@ class JWTAuthController extends Controller
 
         $token = JWTAuth::fromUser($user);
 
+        // Handle optional image upload to S3 under users/{id}/
+        $file = $request->file('image');
+        if ($file && $file->isValid()) {
+            try {
+                $extension = $file->getClientOriginalExtension() ?: 'jpg';
+                $filename = uniqid('user_') . '.' . $extension;
+
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $s3disk */
+                $s3disk = Storage::disk('s3');
+                $path = $s3disk->putFileAs('users/' . $user->id, $file, $filename, ['visibility' => 'private']);
+
+                if (is_string($path) && strlen(trim($path)) > 0) {
+                    $url = $s3disk->url($path);
+                    $user->image_url = $url;
+                    $user->save();
+                } else {
+                    Log::error('S3 returned empty path when uploading user image', ['user_id' => $user->id, 'original_name' => $file->getClientOriginalName()]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error uploading user image to S3', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+                // continue — user created but image failed
+            }
+        }
+
         return response()->json([
-            'user' => $user,
+            'user' => $user->fresh(),
             'token' => $token
         ], 200);
     }
