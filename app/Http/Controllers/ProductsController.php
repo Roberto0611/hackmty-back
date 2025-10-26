@@ -68,8 +68,8 @@ class ProductsController extends Controller
         $user = User::find($userId);
         $user->addXp(8);
 
-        // Return a JSON response with the created product and a 201 status code
-        return response()->json($pivot, 201);
+        // Return pivot and product (product includes image_url if upload succeeded)
+        return response()->json(['pivot' => $pivot, 'product' => $Product->fresh()], 201);
     }
 
     public function getById($id){
@@ -97,7 +97,8 @@ class ProductsController extends Controller
                 'places.name as place_name',
                 'places.latitude',
                 'places.longitude',
-                'products.name as product_name'
+                'products.name as product_name',
+                'products.image_url as image_url'
             )
             ->get();
 
@@ -110,7 +111,8 @@ class ProductsController extends Controller
             ->select(
                 'places_products.*',
                 'places.name as place_name',
-                'products.name as product_name'
+                'products.name as product_name',
+                'products.image_url as image_url'
             )
             ->where('places_products.id', $id)
             ->first();
@@ -130,7 +132,8 @@ class ProductsController extends Controller
                 'places.name as place_name',
                 'places.latitude',
                 'places.longitude',
-                'products.name as product_name'
+                'products.name as product_name',
+                'products.image_url as image_url'
             )
             ->where('places_products.place_id', $place_id)
             ->get();
