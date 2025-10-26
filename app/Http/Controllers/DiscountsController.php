@@ -143,11 +143,9 @@ class DiscountsController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'place_id' => 'required|integer|exists:places,id',
-            'category_id' => 'required|integer|exists:categories,id',
-            // validar el archivo enviado (multipart/form-data)
-            'image' => 'nullable|file|image|max:5120', // 5 MB
-            // optional schedules array
-            'schedules' => 'nullable|array',
+            'image' => 'nullable|file|image|max:5120',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time'
         ]);
 
         // If schedules provided, validate each item: day_of_week, start_time, end_time
@@ -212,22 +210,23 @@ class DiscountsController extends Controller
         }
 
         // If schedules were provided, insert them into discount_schedules
-        if (!empty($schedules)) {
-            $rows = [];
-            $now = now();
-            foreach ($schedules as $sched) {
-                $rows[] = [
-                    'discount_id' => $id,
-                    'day_of_week' => $sched['day_of_week'],
-                    'start_time' => $sched['start_time'],
-                    'end_time' => $sched['end_time'],
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
-            // bulk insert
-            DB::table('discount_schedules')->insert($rows);
-        }
+        // if (!empty($schedules)) {
+        //     $rows = [];
+        //     foreach ($schedules as $sched) {
+            //     }
+            //     // bulk insert
+            // }
+        $now = now();
+        $rows[] = [
+            'discount_id' => $id,
+            'day_of_week' => $request->input('day_of_week'),
+            'start_time' => $request->input('start_time'),
+            'end_time' => $request->input('end_time'),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        DB::table('discount_schedules')->insert($rows);
 
         return response()->json($discounts->fresh(), 201);
     }

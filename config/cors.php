@@ -17,7 +17,7 @@ return [
 
     'paths' => ['api/*', '*'],
 
-    'allowed_methods' => ['*'],
+    'allowed_methods' => ['POST', 'GET', 'PUT', 'DELETE', 'OPTIONS'],
 
     'allowed_origins' => ['http://localhost:3000', "https://hackmty-front.vercel.app"], // En producción, especifica el dominio del frontend
 
