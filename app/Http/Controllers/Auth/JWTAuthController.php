@@ -89,4 +89,18 @@ class JWTAuthController extends Controller
             return response()->json(['valid' => false, 'error' => $e->getMessage()], 401);
         }
     }
+
+    public function userInfo(){
+        $userid = auth()->id();
+        $user = User::where('id', $userid)->with('discounts', 'products', 'votes')->first();
+        return response()->json($user);
+    }
+
+    public function getUserInfo($id){
+        $user = User::with('discounts', 'products', 'votes')->find($id);
+        if(!$user){
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        return response()->json($user);
+    }
 }

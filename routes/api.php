@@ -17,6 +17,7 @@ Route::post('login', [JWTAuthController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
     Route::get('user', [JWTAuthController::class, 'me']);
     Route::post('logout', [JWTAuthController::class, 'logout']);
+    Route::get('userInfo', [JWTAuthController::class, 'userInfo']);
 
     // routes for discounts likes
     Route::post('likeDiscount/{id}', [DiscountsController::class, 'likeDiscount']);
@@ -32,6 +33,10 @@ Route::middleware('auth:api')->group(function () {
     // make a verify token route
     Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });
+
+// ruta usuario (obtener info de un usuario por id)
+// Fix: mapear al método correcto `getUserInfo` que acepta el parámetro $id
+Route::get('userInfo/{id}', [JWTAuthController::class, 'getUserInfo']);
 
 // rutas discounts  
 Route::get('getDiscounts', [DiscountsController::class, 'index']);
