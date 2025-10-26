@@ -45,6 +45,8 @@ Route::get('getDiscountsByPlace/{place_id}', [DiscountsController::class, 'getBy
 Route::get('getDiscountsByCategory/{category_id}', [DiscountsController::class, 'getByCategory']);
 Route::get('getDiscountsByDay/{day}', [DiscountsController::class, 'getByDay']);
 Route::get('getDiscountsNow', [DiscountsController::class, 'getNow']);
+Route::get('getTopDiscounts', [DiscountsController::class, 'getTop10']);
+
     
 // rutas places
 Route::get('getPlaces', [placesController::class, 'index']);

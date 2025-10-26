@@ -354,4 +354,12 @@ class DiscountsController extends Controller
 
         return response()->json(['message' => 'Dislike registered successfully'], 201);
     }
+
+    public function getTop10(){
+        $topDiscounts = Discount::withCount(['votes as like_count' => function ($query) {
+            $query->where('vote_value', 1);
+        }])->orderBy('like_count', 'desc')->take(10)->get();
+
+        return response()->json($topDiscounts);
+    }
 }
