@@ -131,4 +131,9 @@ class JWTAuthController extends Controller
         }
         return response()->json($user);
     }
+
+    public function getRanking(){
+        $users = User::orderBy('xp', 'desc')->take(3)->get(['id', 'name', 'xp', 'image_url']);
+        return response()->json($users);
+    }
 }
