@@ -145,7 +145,8 @@ class DiscountsController extends Controller
             'place_id' => 'required|integer|exists:places,id',
             'image' => 'nullable|file|image|max:5120',
             'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time'
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
+            'day_of_week' => 'nullable|integer|min:0|max:10',
         ]);
 
         // If schedules provided, validate each item: day_of_week, start_time, end_time
@@ -174,7 +175,7 @@ class DiscountsController extends Controller
         $discounts->price = $request->price;
         $discounts->save();
 
-    $id = $discounts->id;
+        $id = $discounts->id;
 
         $file = $request->file('image');
         if ($file && $file->isValid()) {
