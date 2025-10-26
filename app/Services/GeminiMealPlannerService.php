@@ -395,15 +395,90 @@ Start now by calling extract_meal_plan_parameters."
     {
         return match ($functionName) {
             'extract_meal_plan_parameters' => $args, // Just return the extracted parameters
-            'get_all_products' => $this->callEndpoint('GET', '/getProducts'),
+            'get_all_products' => $this->getProductsDirectly(),
             'get_products_by_category' => $this->callEndpoint('GET', "/getProductsByCategory/{$args['category_id']}"),
-            'get_all_places' => $this->callEndpoint('GET', '/getPlaces'),
+            'get_all_places' => $this->getPlacesDirectly(),
             'get_places_open_now' => $this->callEndpoint('GET', '/getPlacesOpenNow'),
-            'get_places_products' => $this->callEndpoint('GET', '/getPlacesProducts'),
-            'get_places_products_by_place' => $this->callEndpoint('GET', "/getPlacesProductsByPlace/{$args['place_id']}"),
-            'get_discounts_by_day' => $this->callEndpoint('GET', "/getDiscountsByDayFlat/{$args['day']}"),
+            'get_places_products' => $this->getPlacesProductsDirectly(),
+            'get_places_products_by_place' => $this->getPlacesProductsByPlaceDirectly($args['place_id']),
+            'get_discounts_by_day' => $this->getDiscountsByDayDirectly($args['day']),
             default => ['error' => "Unknown function: {$functionName}"]
         };
+    }
+
+    /**
+     * Get places products directly from database (faster than HTTP call)
+     */
+    private function getPlacesProductsDirectly(): array
+    {
+        return \DB::table('places_products')
+            ->join('places', 'places.id', '=', 'places_products.place_id')
+            ->join('products', 'products.id', '=', 'places_products.product_id')
+            ->select(
+                'places_products.*',
+                'places.name as place_name',
+                'places.latitude',
+                'places.longitude',
+                'products.name as product_name'
+            )
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * Get places products by place directly from database
+     */
+    private function getPlacesProductsByPlaceDirectly(int $placeId): array
+    {
+        return \DB::table('places_products')
+            ->join('places', 'places.id', '=', 'places_products.place_id')
+            ->join('products', 'products.id', '=', 'places_products.product_id')
+            ->select(
+                'places_products.*',
+                'places.name as place_name',
+                'places.latitude',
+                'places.longitude',
+                'products.name as product_name'
+            )
+            ->where('places_products.place_id', $placeId)
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * Get products directly from database
+     */
+    private function getProductsDirectly(): array
+    {
+        return \DB::table('products')->get()->toArray();
+    }
+
+    /**
+     * Get places directly from database
+     */
+    private function getPlacesDirectly(): array
+    {
+        return \DB::table('places')->get()->toArray();
+    }
+
+    /**
+     * Get discounts by day directly from database
+     */
+    private function getDiscountsByDayDirectly(int $day): array
+    {
+        return \DB::table('discounts')
+            ->join('discount_schedules', 'discounts.id', '=', 'discount_schedules.discount_id')
+            ->join('places', 'places.id', '=', 'discounts.place_id')
+            ->select(
+                'discounts.*',
+                'places.name as place_name',
+                'discount_schedules.day_of_week',
+                'discount_schedules.start_time',
+                'discount_schedules.end_time'
+            )
+            ->where('discount_schedules.day_of_week', $day)
+            ->get()
+            ->toArray();
     }
 
     /**
