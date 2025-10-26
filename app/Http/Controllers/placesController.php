@@ -10,7 +10,15 @@ use Carbon\Carbon;
 class placesController extends Controller
 {
     public function index(){
-        $places = Place::all();
+        // Get discounts count and expose a simple flag have_discounts (1 or 0)
+        $places = Place::withCount('discounts')->get()->map(function ($place) {
+            $arr = $place->toArray();
+            $arr['have_discounts'] = ($place->discounts_count > 0) ? 1 : 0;
+            // remove the helper count and any loaded discounts to keep payload small
+            unset($arr['discounts_count'], $arr['discounts']);
+            return $arr;
+        });
+
         return response()->json($places);
     }
     public function getById($id){
