@@ -28,6 +28,7 @@ class ProductsController extends Controller
         $Product = new Product();
         $Product->name = $validated['name'];
         $Product->category_id = $validated['category_id'];
+        $Product->user_id = auth()->id();
         $Product->save();
 
         // insertar en pivote

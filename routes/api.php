@@ -25,6 +25,9 @@ Route::middleware('auth:api')->group(function () {
     // routes to create product
     Route::post('createProduct', action: [ProductsController::class, 'store']);
 
+    // routes to create discounts
+    Route::post('createDiscount', [DiscountsController::class, 'createDiscount']);
+    Route::post('createDiscountSchedule', [DiscountsController::class, 'createDiscountSchedule']);
 
     // make a verify token route
     Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
@@ -36,8 +39,6 @@ Route::get('getDiscountsById/{id}', [DiscountsController::class, 'getById']);
 Route::get('getDiscountsByPlace/{place_id}', [DiscountsController::class, 'getByPlace']);
 Route::get('getDiscountsByCategory/{category_id}', [DiscountsController::class, 'getByCategory']);
 Route::get('getDiscountsByDay/{day}', [DiscountsController::class, 'getByDay']);
-Route::post('createDiscount', [DiscountsController::class, 'createDiscount']);
-Route::post('createDiscountSchedule', [DiscountsController::class, 'createDiscountSchedule']);
 Route::get('getDiscountsNow', [DiscountsController::class, 'getNow']);
     
 // rutas places
