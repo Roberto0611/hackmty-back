@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PlacesProduct;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,33 @@ class ProductsController extends Controller
     public function index(){
         $products = Product::all();
         return response()->json($products);
+    }
+
+    public function store(Request $request){
+        // Validate the incoming request data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'category_id' => 'required|integer|exists:categories,id',
+            'place_id' => 'required|integer|exists:places,id',
+            // Add other fields as necessary
+        ]);
+
+        // insertar en productos 
+        $Product = new Product();
+        $Product->name = $validated['name'];
+        $Product->category_id = $validated['category_id'];
+        $Product->save();
+
+        // insertar en pivote
+        $pivot = new PlacesProduct();
+        $pivot->place_id = $validated['place_id'];
+        $pivot->product_id = $Product->id;
+        $pivot->price = $validated['price'];
+        $pivot->save();
+
+        // Return a JSON response with the created product and a 201 status code
+        return response()->json($pivot, 201);
     }
 
     public function getById($id){

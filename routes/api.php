@@ -22,11 +22,15 @@ Route::middleware('auth:api')->group(function () {
     Route::post('likeDiscount/{id}', [DiscountsController::class, 'likeDiscount']);
     Route::post('dislikeDiscount/{id}', [DiscountsController::class, 'dislikeDiscount']);
 
+    // routes to create product
+    Route::post('createProduct', action: [ProductsController::class, 'store']);
+
+
     // make a verify token route
     Route::post('verify-token', [JWTAuthController::class, 'verifyToken']);
 });
 
-// rutas discounts
+// rutas discounts  
 Route::get('getDiscounts', [DiscountsController::class, 'index']);
 Route::get('getDiscountsById/{id}', [DiscountsController::class, 'getById']);
 Route::get('getDiscountsByPlace/{place_id}', [DiscountsController::class, 'getByPlace']);
@@ -43,7 +47,7 @@ Route::get('getPlacesOpenNow', [placesController::class, 'getOpenNow']);
 Route::get('getPlacesByDay/{day}', [placesController::class, 'getByDay']);
     
 // rutas products
-Route::get('getProducts', [ProductsController::class, 'index']);
+Route::get('getProducts', action: [ProductsController::class, 'index']);
 Route::get('getProductsById/{id}', [ProductsController::class, 'getById']);
 Route::get('getProductsByCategory/{category_id}', [ProductsController::class, 'getByCategory']);
 
