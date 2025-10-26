@@ -1,61 +1,29 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Inspiration
+The inspiration for our project was a problem relevant to our reality as university students and foreign students: the difficulty of managing the money we spend on food while away from home. This situation affects almost all Tec students, as many restaurants near and on campus exceed our budgets, so we rely on discounts and promotions to save money to afford all the meals we need.
+So, when we looked for technical inspiration to solve this situation, we realized how easier the user experience is when apps implement interactive maps, especially when addressing more complex proposals. Apps like Google Maps and Waze helped us develop the main idea of ​​our initiative: an interactive map where users and businesses can upload discounts and low prices around their community for all the users to see.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## What it does
+Our app has four main sections:
+- Interactive map where users upload and view promotions or low prices on food near campus. It features an upvote and downvote system so other users can validate the quality of the promotion.
+- AI chatbot that analyzes the user's budget and tastes to create a personalized meal plan, also mapping out the "route" of meals they should follow daily.
+- List view of all available promotions or low prices by category.
+- User profile, with app statistics like rating, upvotes, downvotes, posts and username, email and an option to reset the password.
 
-## About Laravel
+## How we built it
+Our building process was relatively simple. Firstly, we chose the stack that our project would consist of. As such, we ended up settling on using Laravel for our backend, Next.js for our frontend, and AWS for our cloud database. Once we chose the stack we would work with, we split into two teams: A frontend team, and a backend team, each with their own respective GitHub repo. To build the app efficiently, each team split tasks among members, so each member of each team would work on a specific function while the other worked on another. This setup allowed each member to use their skills to specific tasks either on the back or frontend, with the ability to quickly ask for help their respective teammate if needed. However, both teams were still in constant communication with one another, so if a team needed a specific function from the other team, priorities could be reestablished for whatever is most critical at the moment.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Challenges we ran into
+As each team member worked on functions separately, most of the challenges we faced were primarily tackled individually, with the support of each person's respective teammate. 
+On the backend side, the biggest challenges we faced were the design of the database architecture. The design of the database architecture was something both backend teammates worked together on, to ensure that the app would be sustainable if any other functionalities or tables were to be added in the future, so, even with two people, it took several hours to work out the best possible architecture for the app. However, in the end, the planning paid off, as the good database architecture allowed for seamless seeding and querying, which made the rest of the backend development simpler. 
+On the frontend side, the greatest challenge we faced was developing the map view and its functionality. This is because our frontend team had not worked with AWS's map service before, so we had to learn how to implement from scratch, which required several hours of research and tests until it worked as it should. Overall, our team ran into man other smaller challenges, but with the support we had with one another, they were easy to resolve when we worked together.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Accomplishments that we're proud of
+From the perspective of our backend development team, we are very proud of being able to create an AI chatbot that analysis the user's data and gives functional information in return, as it was a ginormous and complex task we had not even done before. Our team had some experience using Gemini's API for a previous Hackathon, but we had to research and learn a lot to be able to do multiple function calls with the API that could communicate directly with our endpoints and database. This last element is another thing we are really proud of, as we spent a lot of time making sure our data architecture would be efficient, so seeing how development was smooth as the project went on thanks to our planning really thrilled our backend team.
+On the other hand, from the frontend development perspective, we are extremely proud of our implementation of Amazon Location Service through the interactive map, which became the heart of our user experience. None of us had ever worked with AWS maps before, so being able to integrate it seamlessly, display real-time promotions, and connect it with our backend was a major accomplishment. We are also proud of how intuitive and cohesive our UI turned out to be. We built the entire interface from scratch using Next.js and React components, ensuring consistent design and responsiveness across all pages. We successfully implemented: a dynamic interactive map view with, a clean and accessible list view of all promotions and a user profile page displaying personalized statistics, ratings, and password reset features. Seeing all of these components working together in one app was one of our biggest accomplishments as a team.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## What we learned
+Throughout the development of our project, the biggest lesson we learned was the power of teamwork. Coordinating between frontend and backend teams, while splitting responsibilities, allowed us to tackle complex tasks more efficiently and support each other when we faced complex challenges. 
+On the frontend, we gained practical experience implementing Amazon Location Service for the interactive map, while also improving our skills in React and Next.js. On the backend, we learned how to design and structure database architecture, ensuring that the app could handle user data, promotions, and chatbot interactions efficiently, managing multiple API calls and integrate AI functionality with our endpoints and database.
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## What's next for Map My Meal
+In the future we plan on slowly expanding Map My Meal's reach, first by allowing users from all Monterrey to access and add their own contributions to the app, then expanding into all of Mexico and eventually to the entire world, making this app the main way for both residents and foreigners to know all the discounts and low prices near them. 
