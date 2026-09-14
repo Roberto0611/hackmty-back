@@ -623,6 +623,7 @@ Built with ❤️ during HackMTY 2025
 
 - **Roberto** - [@Roberto0611](https://github.com/Roberto0611)
 - **Fernando** - Backend Development
+- **Juan Pablo** [@Johnphr](https://github.com/Johnphr/)
 
 ---
 
